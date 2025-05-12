@@ -1,0 +1,229 @@
+{
+  "size": 1000,
+  "query_config": {
+    "query_type_p": {
+      "select": 0.5,
+      "insert": 0.5,
+      "update": 0.0,
+      "delete": 0.0
+    },
+    "bytes_scanned": {
+      "lower_bound_mb": 10,
+      "upper_bound_gb": 1
+    },
+    "result_size": {
+      "lower_bound_mb": 0.01,
+      "upper_bound_gb": 0.01
+    },
+    "write_volume": {
+      "lower_bound_mb": 0.01,
+      "upper_bound_gb": 0.1
+    },
+    "max_num_read_tables": 5,
+    "ir_scale": 1.0,
+    "db_count": 10
+  },
+  "scheduler_config": {
+    "hourly_distribution_r": {
+      "0": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "1": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "2": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "3": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "4": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "5": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "6": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "7": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "8": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "9": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "10": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "11": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "12": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "13": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "14": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "15": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "16": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "17": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "18": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "19": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "20": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "21": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "22": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "23": {
+        "p": 0.0416,
+        "tables_count": 2
+      }
+    },
+    "hourly_distribution_w": {
+      "0": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "1": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "2": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "3": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "4": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "5": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "6": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "7": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "8": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "9": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "10": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "11": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "12": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "13": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "14": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "15": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "16": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "17": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "18": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "19": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "20": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "21": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "22": {
+        "p": 0.0416,
+        "tables_count": 2
+      },
+      "23": {
+        "p": 0.0416,
+        "tables_count": 2
+      }
+    },
+    "table_count": 10,
+    "start_time": "2025-01-01 00:00:00",
+    "duration_h": 24
+  },
+  "repetitiveness": 0.4,
+  "seed": 6
+}
