@@ -26,8 +26,8 @@ class QueryScheduler:
         wl = self.query_pool.copy()
 
         for h in range(1, hours):
-            read_q_count = int(self.config["hourly_distribution_r"][str(h)]["p"] * read_size)
-            write_q_count = int(self.config["hourly_distribution_w"][str(h)]["p"] * write_size)
+            read_q_count = int(self.config["hourly_distribution_r"][h]["p"] * read_size)
+            write_q_count = int(self.config["hourly_distribution_w"][h]["p"] * write_size)
 
             read_queries = wl.loc[read_q_condition].sample(read_q_count)
             wl.drop(read_queries.index, inplace=True)
@@ -38,7 +38,7 @@ class QueryScheduler:
             read_queries["hour"] = h
             read_tables = np.random.choice(
                 self.table_pool,
-                self.config["hourly_distribution_r"][str(h)]["tables_count"]
+                self.config["hourly_distribution_r"][h]["tables_count"]
             )
             read_queries["read_tables"] = [
                 ",".join(np.random.choice(read_tables, np.random.randint(1, len(read_tables) + 1), replace=False))
@@ -50,7 +50,7 @@ class QueryScheduler:
             write_queries["hour"] = h
             read_tables = np.random.choice(
                 self.table_pool,
-                self.config["hourly_distribution_w"][str(h)]["tables_count"]
+                self.config["hourly_distribution_w"][h]["tables_count"]
             )
             write_queries["read_tables"] = [
                 ",".join(np.random.choice(read_tables, np.random.randint(1, len(read_tables) + 1), replace=False))

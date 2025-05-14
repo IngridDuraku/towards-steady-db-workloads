@@ -9,9 +9,11 @@ class QueryGenerator:
         self.config = config
 
     def generate_query(self):
+        type_p = np.array(list(self.config["query_type_p"].values()))
+        type_p /= type_p.sum()
         q_type = np.random.choice(
             list(self.config["query_type_p"].keys()),
-            p=list(self.config["query_type_p"].values())
+            p= type_p
         )
         # bytes_scanned
         bytes_scanned = self.config["bytes_scanned"]
@@ -21,8 +23,9 @@ class QueryGenerator:
         q_bytes_scanned = int(np.random.lognormal(mean=mu, sigma=sigma))
 
         # num read tables
-        max_num_read_tables = int(self.config["max_num_read_tables"])
-        q_num_read_tables = int(np.random.uniform(low=1, high=max_num_read_tables))
+        values = self.config["read_tables_distribution"].index
+        p = self.config["read_tables_distribution"].values
+        q_num_read_tables = np.random.choice(values, p=p)
 
         # result_size
         if q_type == "select":
