@@ -43,7 +43,6 @@ class QueryGenerator:
             bytes_scanned=q_bytes_scanned,
             result_size=q_result_size,
             num_read_tables=q_num_read_tables,
-
         )
 
         # write_volume

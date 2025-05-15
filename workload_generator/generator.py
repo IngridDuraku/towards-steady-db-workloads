@@ -31,6 +31,7 @@ class WorkloadGenerator:
         scheduled_queries = query_scheduler.assign_timestamps()
 
         workload = self.preprocess_workload(scheduled_queries)
+        workload = self.calculate_repetition_coefficient(workload)
 
         return workload
 
@@ -46,6 +47,7 @@ class WorkloadGenerator:
         workload["timestamp"] = pd.to_datetime(workload["timestamp"])
         workload["bytes_scanned"] = workload["bytes_scanned"].astype("int64")
         workload["result_size"] = workload["result_size"].astype("int64")
+        workload["write_volume"] = workload["write_volume"].astype("int64")
         workload = workload.sort_values(by="timestamp")
 
         for query in workload.itertuples(index=True):
@@ -55,10 +57,10 @@ class WorkloadGenerator:
             affected_queries_condition = get_affected_queries_condition(query, workload) & (
                     workload["timestamp"] > query.timestamp)
             delta = query.write_volume
-            delta_result = workload[affected_queries_condition]["scan_to_result_ratio"] \
-                           * delta
-            delta_i_result = workload[affected_queries_condition]["scan_to_i_result_ratio"] \
-                             * delta
+            delta_result = (workload[affected_queries_condition]["scan_to_result_ratio"] \
+                           * delta).astype("int64")
+            delta_i_result = (workload[affected_queries_condition]["scan_to_i_result_ratio"] \
+                             * delta).astype("int64")
 
             if query.query_type in ("insert", "update"):  # not sure about update
                 workload.loc[affected_queries_condition, "bytes_scanned"] += delta
@@ -87,3 +89,11 @@ class WorkloadGenerator:
         unique_queries_count = wl_size - repetitions_count
 
         return int(unique_queries_count), repetitions_count
+
+    def calculate_repetition_coefficient(self, workload):
+        workload["repetition_coefficient"] = (
+                                 workload.groupby("query_hash")["query_hash"].transform("count") - 1
+                             ) / len(workload)
+
+        return workload
+

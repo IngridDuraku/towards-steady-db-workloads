@@ -12,7 +12,7 @@ class QueryScheduler:
         self.table_pool = [str(num) + np.random.choice(["A", "B", "C"]) for num in nums]
 
     def get_random_timestamp_in_hour(self, hour):
-        start = pd.Timestamp(self.config["start_time"]).date()
+        start = pd.Timestamp(self.config["start_time"])
         seconds_offset = np.random.randint(0, 3599) + hour * 3600
         return start + datetime.timedelta(seconds=seconds_offset)
 
@@ -35,29 +35,36 @@ class QueryScheduler:
             write_queries = wl.loc[write_q_condition].sample(write_q_count)
             wl.drop(write_queries.index, inplace=True)
 
-            read_queries["hour"] = h
-            read_tables = np.random.choice(
-                self.table_pool,
-                self.config["hourly_distribution_r"][h]["tables_count"]
-            )
-            read_queries["read_tables"] = [
-                ",".join(np.random.choice(read_tables, np.random.randint(1, len(read_tables) + 1), replace=False))
-                for _ in range(read_q_count)
-            ]
-            read_queries["write_table"] = None
-            read_queries["timestamp"] = [self.get_random_timestamp_in_hour(h) for _ in range(read_q_count)]
+            if not read_queries.empty:
+                read_queries["hour"] = h
+                read_tables = np.random.choice(
+                    self.table_pool,
+                    self.config["hourly_distribution_r"][h]["tables_count"]
+                )
+                read_queries["read_tables"] = read_queries.apply(lambda q: ",".join(np.random.choice(
+                    read_tables,
+                    min(q["num_read_tables"], len(read_tables)),
+                    replace=False
+                )), axis=1)
 
-            write_queries["hour"] = h
-            read_tables = np.random.choice(
-                self.table_pool,
-                self.config["hourly_distribution_w"][h]["tables_count"]
-            )
-            write_queries["read_tables"] = [
-                ",".join(np.random.choice(read_tables, np.random.randint(1, len(read_tables) + 1), replace=False))
-                for _ in range(write_q_count)
-            ]
-            write_queries["timestamp"] = [self.get_random_timestamp_in_hour(h) for _ in range(write_q_count)]
-            write_queries["write_table"] = [np.random.choice(self.table_pool) for _ in range(write_q_count)]
+                read_queries["write_table"] = None
+                read_queries["timestamp"] = [self.get_random_timestamp_in_hour(h) for _ in range(read_q_count)]
+
+            if not write_queries.empty:
+                write_queries["hour"] = h
+                read_tables = np.random.choice(
+                    self.table_pool,
+                    self.config["hourly_distribution_w"][h]["tables_count"]
+                )
+
+                write_queries["read_tables"] = write_queries.apply(lambda q: ",".join(np.random.choice(
+                    read_tables,
+                    min(q["num_read_tables"], len(read_tables)),
+                    replace=False
+                )), axis=1)
+
+                write_queries["timestamp"] = [self.get_random_timestamp_in_hour(h) for _ in range(write_q_count)]
+                write_queries["write_table"] = [np.random.choice(self.table_pool) for _ in range(write_q_count)]
 
             hourly_wl = pd.concat([hourly_wl, read_queries, write_queries])
 
