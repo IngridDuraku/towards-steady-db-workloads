@@ -43,18 +43,15 @@ class DependencyGraph:
         if query_id not in self.df["id"].values:
             return False
 
-        all_deps = self.get_all_dependencies(query_id)
+        vals = self.dependencies.values()
+        flat_deps = set().union(*vals)
 
-        if len(all_deps) > 0:
+        if query_id in flat_deps:
             return False
 
         all_to_remove = query_id
         self.df = self.df[~self.df["id"].isin(all_to_remove)].reset_index(drop=True)
-
         self.dependencies.pop(query_id)
-
-        for deps in self.dependencies.values():
-            deps.difference_update(all_to_remove)
 
         return True
 
