@@ -18,4 +18,4 @@ def estimate_query_load(query, ref_values):
             weights["write_volume"] * query.write_volume / ref_values["write_volume"] +
             weights["cpu_time"] * query.cpu_time / ref_values["cpu_time"])
 
-    return load
+    return round(load, 2)

@@ -24,7 +24,7 @@ class EagerExecutionModel(BaseExecutionModel):
 
             for _, query in self.wl.iterrows():
                 is_read = query["query_type"] == "select"
-                is_write = ~is_read
+                is_write = not is_read
 
                 if is_write:
                     # add query for normal execution

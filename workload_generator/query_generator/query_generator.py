@@ -17,7 +17,7 @@ class QueryGenerator:
         )
         # bytes_scanned
         bytes_scanned = self.config["bytes_scanned"]
-        lb = bytes_scanned["lower_bound_mb"]
+        lb = max(bytes_scanned["lower_bound_mb"], 1)
         up = bytes_scanned["upper_bound_gb"]
         mu, sigma = compute_lognormal_params(lb, up)
         q_bytes_scanned = int(np.random.lognormal(mean=mu, sigma=sigma))

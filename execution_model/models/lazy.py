@@ -28,7 +28,7 @@ class LazyExecutionModel(BaseExecutionModel):
 
             for _, query in self.wl.iterrows():
                 is_read = query["query_type"] == "select"
-                is_write = ~is_read
+                is_write = not is_read
 
                 if is_write:
                     self.dependency_graph.add_query(query)
@@ -107,6 +107,10 @@ class LazyExecutionModel(BaseExecutionModel):
 
                     query["execution"] = "normal"
                     ex_plan.append(query)
+
+            self.wl_execution_plan = pd.DataFrame(data=ex_plan)
+
+        return self.wl_execution_plan
 
     def get_cost(self, hw_parameters):
        return super().get_cost(
