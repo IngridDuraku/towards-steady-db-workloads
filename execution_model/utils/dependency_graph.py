@@ -15,20 +15,17 @@ class DependencyGraph:
         new_row["id"] = new_id
         self.df.loc[len(self.df)] = new_row
 
-        for _, prev_row in self.df.iterrows():
-            prev_id = prev_row["id"]
-            if prev_row["timestamp"] >= new_row["timestamp"]:
-                continue
+        mask1 = self.df["write_table"].notna()
+        mask2 = new_row["unique_db_instance"] == self.df["unique_db_instance"]
+        mask3 = self.df["write_table"].apply(lambda tables: False if not tables else len(set(new_row["read_tables"].split(",")) & set(tables)) > 0)
+        mask4 = self.df["id"] != new_row["id"]
 
-            # RAW: current query reads from a table previously written
-            if not pd.isna(prev_row["write_table"]) and \
-                new_row["unique_db_instance"] == prev_row["unique_db_instance"] and \
-               len(set(new_row["read_tables"].split(",")) & {prev_row["write_table"]}) > 0:
-                self.dependencies[new_id].add(prev_id)
+        dep_rows = self.df.loc[mask1 & mask2 & mask3 & mask4, "id"]
+        self.dependencies[new_id] = set(dep_rows)
 
         return new_id
 
-    def get_all_dependencies(self, query_id: int) -> Set[int]:
+    def get_all_dependency_ids(self, query_id: int) -> Set[int]:
         visited = set()
         def dfs(qid):
             for dep in self.dependencies.get(qid, []):
@@ -38,6 +35,12 @@ class DependencyGraph:
         dfs(query_id)
 
         return visited
+
+    def get_all_dependencies(self, query_id):
+        deps = self.get_all_dependency_ids(query_id)
+        mask = self.df["id"].isin(deps)
+
+        return self.df[mask]
 
     def remove(self, query_id):
         if query_id not in self.df["id"].values:
