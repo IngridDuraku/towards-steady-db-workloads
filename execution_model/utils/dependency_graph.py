@@ -15,9 +15,22 @@ class DependencyGraph:
         new_row["id"] = new_id
         self.df.loc[len(self.df)] = new_row
 
+        def foo(tables):
+            if not tables:
+                return False
+
+            read_tables = new_row["read_tables"].split(",")
+            read_tables = set(read_tables)
+
+            write_tables = set(tables)
+
+            affected_tables = set(read_tables & write_tables)
+
+            return len(affected_tables) > 0
+
         mask1 = self.df["write_table"].notna()
         mask2 = new_row["unique_db_instance"] == self.df["unique_db_instance"]
-        mask3 = self.df["write_table"].apply(lambda tables: False if not tables else len(set(new_row["read_tables"].split(",")) & set(tables)) > 0)
+        mask3 = self.df["write_table"].apply(lambda tables: foo(tables))
         mask4 = self.df["id"] != new_row["id"]
 
         dep_rows = self.df.loc[mask1 & mask2 & mask3 & mask4, "id"]
@@ -62,7 +75,7 @@ class DependencyGraph:
         if query_id not in self.df["id"].values:
             return False
 
-        all_deps = self.get_all_dependencies(query_id)
+        all_deps = self.get_all_dependency_ids(query_id)
         all_to_remove = all_deps | {query_id}
         self.df = self.df[~self.df["id"].isin(all_to_remove)].reset_index(drop=True)
 
