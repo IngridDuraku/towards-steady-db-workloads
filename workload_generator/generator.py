@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from utils.workload import get_affected_queries_condition
+from utils.workload import get_affected_queries_condition, estimate_query_load
 from workload_generator.query_generator.query_generator import QueryGenerator
 from workload_generator.scheduler.scheduler import QueryScheduler
 
@@ -9,6 +9,7 @@ from workload_generator.scheduler.scheduler import QueryScheduler
 class WorkloadGenerator:
     def __init__(self, config):
         self.config = config
+        self.ref_values = None
 
     def generate_workload(self):
         np.random.seed(self.config["seed"])
@@ -32,6 +33,19 @@ class WorkloadGenerator:
 
         workload = self.preprocess_workload(scheduled_queries)
         workload = self.calculate_repetition_coefficient(workload)
+        self.ref_values = {
+            "bytes_scanned": (self.config["query_config"]["bytes_scanned"]["lower_bound_mb"] * 1e6 +
+                              self.config["query_config"]["bytes_scanned"][
+                                  "upper_bound_gb"] * 1e9) / 2,
+            "result_size": (self.config["query_config"]["result_size"]["lower_bound_mb"] * 1e6 +
+                            self.config["query_config"]["result_size"][
+                                "upper_bound_gb"] * 1e9) / 2,
+            "write_volume": (self.config["query_config"]["write_volume"]["lower_bound_mb"] * 1e6 +
+                             self.config["query_config"]["write_volume"][
+                                 "upper_bound_gb"] * 1e9) / 2,
+            "cpu_time": workload["cpu_time"].median(),
+        }
+        workload["load"] = workload.apply(lambda q: estimate_query_load(q, self.ref_values), axis=1)
 
         return workload
 

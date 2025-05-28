@@ -23,8 +23,8 @@ class QueryGenerator:
         q_bytes_scanned = int(np.random.lognormal(mean=mu, sigma=sigma))
 
         # num read tables
-        values = self.config["read_tables_distribution"].index
-        p = self.config["read_tables_distribution"].values
+        values = list(self.config["read_tables_distribution"].keys())
+        p = list(self.config["read_tables_distribution"].values())
         q_num_read_tables = np.random.choice(values, p=p)
 
         # result_size
