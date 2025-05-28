@@ -9,6 +9,16 @@ class WorkloadInsights:
         self.repetitiveness = self.estimate_repetitiveness()
         self.query_type_frequencies = self.estimate_query_type_frequencies()
         self.spikiness = self.estimate_spikiness()
+        self.std_dev = self.estimate_std_dev()
+
+    def get_insights(self):
+        return {
+            "size": self.wl_size,
+            "repetitiveness": self.repetitiveness,
+            "query_type_frequencies": self.query_type_frequencies,
+            "spikiness": self.spikiness,
+            "std_dev": self.std_dev
+        }
 
     def get_hourly_load(self):
         df = self.wl.copy()

@@ -111,14 +111,14 @@ class RedsetWorkloadExtractor:
 
     def get_read_tables_distribution(self):
         read_tables_counts = self.cluster_data['read_table_ids'].apply(lambda x: len(x.split(',')))
-        read_table_counts = read_tables_counts.value_counts(normalize=True).sort_index()
+        read_table_counts = read_tables_counts.value_counts(normalize=True).sort_index().astype(float)
 
-        return read_table_counts
+        return read_table_counts.to_dict()
 
     def max_read_tables_per_query(self):
         read_tables_counts = self.cluster_data['read_table_ids'].apply(lambda x: len(x.split(',')))
 
-        return read_tables_counts.max()
+        return int(read_tables_counts.max())
 
     def estimate_repetitiveness(self):
         unique_exact_queries = self.cluster_data.drop_duplicates("feature_fingerprint")
@@ -159,7 +159,7 @@ class RedsetWorkloadExtractor:
             "scheduler_config": {
                 "hourly_distribution_r": h_dist_r,
                 "hourly_distribution_w": h_dist_w,
-                "start_time": self.start_time,
+                "start_time": self.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                 "duration_h": self.duration_h,
                 "table_count": self.get_num_tables()
             },
