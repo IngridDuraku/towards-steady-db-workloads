@@ -2,6 +2,7 @@ import pandas as pd
 
 from cache.repetition_aware import RepetitionAwareCache
 from execution_model.models.base import BaseExecutionModel
+from execution_model.utils.const import ExecutionTrigger
 from execution_model.utils.dependency_graph import DependencyGraph
 
 
@@ -46,6 +47,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query["write_volume"] = 0
                         query["cache_reads"] += 1
                         query["execution"] = "incremental"
+                        query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
 
                         ex_plan.append(query)
                         self.dependency_graph.remove_with_dependencies(qid)
@@ -53,6 +55,7 @@ class LazyExecutionModel(BaseExecutionModel):
                 else:
                     pending_updates["timestamp"] = query["timestamp"]
                     pending_updates["execution"] = "normal"
+                    pending_updates["execution_trigger"] = ExecutionTrigger.DEFERRED
                     query["was_cached"] = False
                     query["cache_result"] = False
                     query["cache_ir"] = False
@@ -90,6 +93,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query["cache_writes"] += 1
 
                     query["execution"] = "incremental"
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
                     ex_plan.append(query)
                 else:
                     cached_query = query
@@ -105,6 +109,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query["cache_writes"] += 1
 
                     query["execution"] = "normal"
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
                     ex_plan.append(query)
 
             self.wl_execution_plan = pd.DataFrame(data=ex_plan)

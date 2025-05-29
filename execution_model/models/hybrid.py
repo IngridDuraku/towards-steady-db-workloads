@@ -3,7 +3,7 @@ import pandas as pd
 
 from cache.repetition_aware import RepetitionAwareCache
 from execution_model.models.base import BaseExecutionModel
-from execution_model.utils.const import CACHE_COLS_LIST, CACHE_TYPES_DICT, WORKLOAD_PLAN_COL_LIST
+from execution_model.utils.const import CACHE_COLS_LIST, CACHE_TYPES_DICT, WORKLOAD_PLAN_COL_LIST, ExecutionTrigger
 from execution_model.utils.dependency_graph import DependencyGraph
 from utils.workload import estimate_query_load
 
@@ -47,6 +47,7 @@ class HybridModel(BaseExecutionModel):
         queries_plan.loc[:, "cache_results"] = False
         queries_plan.loc[:, "cache_ir"] = False
         queries_plan.loc[:, "write_inc_table"] = False
+        queries_plan.loc[: "execution_trigger"] = ExecutionTrigger.TRIGGERED_BY_READ
 
         # get affected queries
         # update deltas + mark as "dirty"
@@ -64,7 +65,7 @@ class HybridModel(BaseExecutionModel):
         self.wl_execution_plan.loc[start:end] = queries_plan.values
         self.hourly_load[str(self.current_hour)] += queries_plan["load"].sum()
 
-    def execute_write(self, query, timestamp=None):
+    def execute_write(self, query,  trigger=ExecutionTrigger.IMMEDIATE, timestamp=None):
         if timestamp is None:
             timestamp = query["timestamp"]
 
@@ -96,6 +97,7 @@ class HybridModel(BaseExecutionModel):
 
             query["execution"] = "normal"
             query["cache_reads"] += 1 # read dependencies
+            query["execution_trigger"] = trigger # read dependencies
 
             self.hourly_load[str(self.current_hour)] += query["load"]
             self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
@@ -104,7 +106,7 @@ class HybridModel(BaseExecutionModel):
 
         return True
 
-    def execute_incrementally(self, query, query_hash, timestamp=None):
+    def execute_incrementally(self, query, query_hash, trigger=ExecutionTrigger.IMMEDIATE, timestamp=None):
         if timestamp is None:
             timestamp = query["timestamp"]
         # check if there are pending queries => execute
@@ -141,8 +143,6 @@ class HybridModel(BaseExecutionModel):
                 query.loc["cache_ir"] = True
                 query.loc["cache_result"] = True
                 query.loc["cache_writes"] = 1
-
-            query.loc["execution"] = "incremental"
         else:
             query.loc["was_cached"] = True
             query.loc["cache_writes"] = 0
@@ -150,8 +150,9 @@ class HybridModel(BaseExecutionModel):
             query.loc["cpu_time"] = 0
             query.loc["write_volume"] = 0
             query.loc["cache_reads"] += 1
-            query.loc["execution"] = "incremental"
 
+        query.loc["execution"] = "incremental"
+        query.loc["execution_trigger"] = trigger
         query.loc["load"] = estimate_query_load(query, self.load_ref)
         self.hourly_load[str(self.current_hour)] += query["load"]
         self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
@@ -183,6 +184,7 @@ class HybridModel(BaseExecutionModel):
             query["cache_writes"] += 1
 
         query["execution"] = "normal"
+        query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
         self.hourly_load[str(self.current_hour)] += query["load"]
         self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
 
@@ -192,7 +194,7 @@ class HybridModel(BaseExecutionModel):
         cache = cache.sort_values(by=["repetition_coefficient", "load"], ascending=False).iloc[:count]
 
         for hash_index, query in cache.iterrows():
-            self.execute_incrementally(query, hash_index, timestamp)
+            self.execute_incrementally(query, hash_index, ExecutionTrigger.DEFERRED, timestamp)
             if self.load_threshold - self.hourly_load[str(self.current_hour)] <= 0:
                 break
 
@@ -223,7 +225,7 @@ class HybridModel(BaseExecutionModel):
 
                         run_query = True
                         for _, q in queries.iterrows():
-                            run_query = self.execute_write(q, last_timestamp)
+                            run_query = self.execute_write(q, last_timestamp, ExecutionTrigger.DEFERRED)
                             if not run_query:
                                 break
 

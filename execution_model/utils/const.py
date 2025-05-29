@@ -1,3 +1,5 @@
+from enum import Enum
+
 WORKLOAD_COLS_LIST = [
     'query_hash',
     'query_type',
@@ -56,7 +58,8 @@ WORKLOAD_PLAN_TYPES = WORKLOAD_TYPES_DICT | {
     'cache_reads': 'int64',
     'load': 'float64',
     'execution': 'object',
-    'write_inc_table': 'bool'
+    'write_inc_table': 'bool',
+    'execution_trigger': 'object',
 }
 
 CACHE_COLS_LIST = WORKLOAD_COLS_LIST + ["size", "dirty", "delta"]
@@ -66,3 +69,9 @@ CACHE_TYPES_DICT = WORKLOAD_TYPES_DICT | {
     "dirty": "bool",
     "delta": "int64"
 }
+
+class ExecutionTrigger(Enum):
+    IMMEDIATE = "immediate"
+    DEFERRED = "deferred"
+    TRIGGERED_BY_READ = "triggered_by_read"
+    TRIGGERED_BY_WRITE = "triggered_by_write"

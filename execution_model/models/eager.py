@@ -2,6 +2,7 @@ import pandas as pd
 
 from cache.repetition_aware import RepetitionAwareCache
 from execution_model.models.base import BaseExecutionModel
+from execution_model.utils.const import ExecutionTrigger
 
 
 class EagerExecutionModel(BaseExecutionModel):
@@ -30,6 +31,7 @@ class EagerExecutionModel(BaseExecutionModel):
                     # add query for normal execution
                     query["cache_reads"] += 1 # count one cache read for retrieving affected queries
                     query["execution"] = "normal"
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
                     ex_plan.append(query)
 
                     # add all affected queries for refresh
@@ -42,11 +44,13 @@ class EagerExecutionModel(BaseExecutionModel):
                         affected_queries["intermediate_result_size"] = affected_queries[
                                                                            "scan_to_i_result_ratio"] * delta
 
-                        affected_queries["timestamp"] = query.timestamp
+                        affected_queries["timestamp"] = query["timestamp"]
                         affected_queries["cache_result"] = True
                         affected_queries["cache_ir"] = True
                         affected_queries["cache_writes"] += 1
                         affected_queries["execution"] = "incremental"
+                        affected_queries["execution_trigger"] = ExecutionTrigger.TRIGGERED_BY_WRITE
+                        affected_queries["execution_timestamp"] = query["timestamp"]
 
                         rows = [row for index, row in affected_queries.iterrows()]
 
@@ -62,6 +66,7 @@ class EagerExecutionModel(BaseExecutionModel):
                     query["write_volume"] = 0
                     query["cache_reads"] += 1
                     query["execution"] = "incremental"
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
                     ex_plan.append(query)
                 else:
                     cached_query = query
@@ -77,6 +82,7 @@ class EagerExecutionModel(BaseExecutionModel):
                         query["cache_writes"] += 1
 
                     query["execution"] = "normal"
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
                     ex_plan.append(query)
 
             self.wl_execution_plan = pd.DataFrame(data=ex_plan)
