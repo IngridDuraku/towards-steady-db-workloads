@@ -35,8 +35,7 @@ class LazyExecutionModel(BaseExecutionModel):
                     continue
 
                 qid = self.dependency_graph.add_query(query)
-                deps = self.dependency_graph.get_all_dependencies(qid)
-                pending_updates = self.dependency_graph.df[self.dependency_graph.df["id"].isin(deps)]
+                pending_updates = self.dependency_graph.get_all_dependencies(qid)
 
                 if pending_updates.empty:
                     if query["query_hash"] in self.cache:
