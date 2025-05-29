@@ -71,6 +71,8 @@ class RedsetWorkloadExtractor:
     def get_df_hourly(self, df):
         df_hourly = df.groupby(["hour"]).size().reset_index(name="load")
         max_hr = max(df_hourly["hour"].max() + 1, 25)
+        if df.empty:
+            max_hr = 25
         df_hourly.set_index("hour", inplace=True)
         df_hourly = df_hourly.reindex(range(1, max_hr), fill_value=0)
         df_hourly.reset_index(inplace=True)
@@ -84,7 +86,7 @@ class RedsetWorkloadExtractor:
         df_hourly = self.get_df_hourly(read_queries)
         df_hourly["p"] = df_hourly["load"]
         df_hourly.drop('load', inplace=True, axis=1)
-        df_hourly["p"] = df_hourly["p"] / len(read_queries)
+        df_hourly["p"] = df_hourly["p"] / len(read_queries) if len(read_queries) > 0 else 0
         df_hourly["tables_count"] = df_hourly.apply(lambda row: self.get_num_tables(row["hour"]), axis=1)
         df_hourly.set_index("hour", inplace=True)
         read_hourly_distributions = df_hourly.to_dict(orient="index")
@@ -94,7 +96,7 @@ class RedsetWorkloadExtractor:
         df_hourly = self.get_df_hourly(write_queries)
         df_hourly["p"] = df_hourly["load"]
         df_hourly.drop('load', inplace=True, axis=1)
-        df_hourly["p"] = df_hourly["p"] / len(write_queries)
+        df_hourly["p"] = df_hourly["p"] / len(write_queries) if len(write_queries) != 0 else 0
         df_hourly["tables_count"] = df_hourly.apply(lambda row: self.get_num_tables(row["hour"]), axis=1)
         df_hourly.set_index("hour", inplace=True)
         write_hourly_distributions = df_hourly.to_dict(orient="index")
