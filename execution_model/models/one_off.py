@@ -1,4 +1,6 @@
 from execution_model.models.base import BaseExecutionModel
+from execution_model.utils.const import ExecutionTrigger
+
 
 class OneOffExecutionModel(BaseExecutionModel):
     def __init__(self, wl):
@@ -8,6 +10,8 @@ class OneOffExecutionModel(BaseExecutionModel):
         if self.wl_execution_plan is None:
             self.wl_execution_plan = self.wl
             self.wl_execution_plan["execution"] = "normal"
+            self.wl_execution_plan["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+            self.wl_execution_plan["triggered_by"] = self.wl_execution_plan["query_hash"]
 
         return self.wl_execution_plan
 

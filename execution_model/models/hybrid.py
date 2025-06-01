@@ -37,7 +37,7 @@ class HybridModel(BaseExecutionModel):
 
         return 0.7 * load_threshold # 10% tolerance
 
-    def run_dependencies(self, dependencies, timestamp):
+    def run_dependencies(self, dependencies, timestamp, triggered_by):
         queries_plan = pd.DataFrame(columns=WORKLOAD_PLAN_COL_LIST)
         queries_plan.loc[: len(dependencies) - 1] = dependencies
         queries_plan.loc[:, "timestamp"] = timestamp
@@ -48,6 +48,7 @@ class HybridModel(BaseExecutionModel):
         queries_plan.loc[:, "cache_ir"] = False
         queries_plan.loc[:, "write_inc_table"] = False
         queries_plan.loc[: "execution_trigger"] = ExecutionTrigger.TRIGGERED_BY_READ
+        queries_plan.loc[:, "triggered_by"] = triggered_by
 
         # get affected queries
         # update deltas + mark as "dirty"
@@ -82,7 +83,7 @@ class HybridModel(BaseExecutionModel):
         required_capacity = query["load"] + dependencies["load"].sum()
         if self.load_threshold - self.hourly_load[str(self.current_hour)] >= required_capacity:
             if not dependencies.empty:
-                self.run_dependencies(dependencies, timestamp)
+                self.run_dependencies(dependencies, timestamp, query["query_hash"])
                 query["cache_writes"] += 1  # mark affected queries
 
             self.dependency_graph.remove_with_dependencies(qid)
@@ -98,6 +99,7 @@ class HybridModel(BaseExecutionModel):
             query["execution"] = "normal"
             query["cache_reads"] += 1 # read dependencies
             query["execution_trigger"] = trigger # read dependencies
+            query["triggered_by"] = query["query_hash"] # read dependencies
 
             self.hourly_load[str(self.current_hour)] += query["load"]
             self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
@@ -114,7 +116,7 @@ class HybridModel(BaseExecutionModel):
         dependencies = self.dependency_graph.get_all_dependencies(qid)
 
         if not dependencies.empty:
-            self.run_dependencies(dependencies, query["timestamp"])
+            self.run_dependencies(dependencies, query["timestamp"], query_hash)
 
         self.dependency_graph.remove_with_dependencies(qid)
 
@@ -153,6 +155,12 @@ class HybridModel(BaseExecutionModel):
 
         query.loc["execution"] = "incremental"
         query.loc["execution_trigger"] = trigger
+
+        if trigger == ExecutionTrigger.IMMEDIATE:
+            query["triggered_by"] = query["query_hash"]
+        else:
+            query["triggered_by"] = None
+
         query.loc["load"] = estimate_query_load(query, self.load_ref)
         self.hourly_load[str(self.current_hour)] += query["load"]
         self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
@@ -164,7 +172,7 @@ class HybridModel(BaseExecutionModel):
         dependencies = self.dependency_graph.get_all_dependencies(qid)
 
         if not dependencies.empty:
-            self.run_dependencies(dependencies, query["timestamp"])
+            self.run_dependencies(dependencies, query["timestamp"], query["query_hash"])
 
         self.dependency_graph.remove_with_dependencies(qid)
 
@@ -185,6 +193,7 @@ class HybridModel(BaseExecutionModel):
 
         query["execution"] = "normal"
         query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+        query["triggered_by"] = query["query_hash"]
         self.hourly_load[str(self.current_hour)] += query["load"]
         self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
 

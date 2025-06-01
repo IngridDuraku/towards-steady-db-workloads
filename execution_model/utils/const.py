@@ -47,7 +47,9 @@ WORKLOAD_PLAN_COL_LIST = WORKLOAD_COLS_LIST +  [
     'write_inc_table',
     'was_cached',
     'cache_writes',
-    'cache_reads'
+    'cache_reads',
+    'execution_trigger',
+    'triggered_by'
 ]
 
 WORKLOAD_PLAN_TYPES = WORKLOAD_TYPES_DICT | {
@@ -60,6 +62,7 @@ WORKLOAD_PLAN_TYPES = WORKLOAD_TYPES_DICT | {
     'execution': 'object',
     'write_inc_table': 'bool',
     'execution_trigger': 'object',
+    'triggered_by': 'object',
 }
 
 CACHE_COLS_LIST = WORKLOAD_COLS_LIST + ["size", "dirty", "delta"]

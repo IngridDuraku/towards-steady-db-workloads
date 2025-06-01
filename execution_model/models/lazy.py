@@ -48,6 +48,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query["cache_reads"] += 1
                         query["execution"] = "incremental"
                         query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                        query["triggered_by"] = query["query_hash"]
 
                         ex_plan.append(query)
                         self.dependency_graph.remove_with_dependencies(qid)
@@ -56,6 +57,7 @@ class LazyExecutionModel(BaseExecutionModel):
                     pending_updates["timestamp"] = query["timestamp"]
                     pending_updates["execution"] = "normal"
                     pending_updates["execution_trigger"] = ExecutionTrigger.DEFERRED
+                    pending_updates["triggered_by"] = query["query_hash"]
                     query["was_cached"] = False
                     query["cache_result"] = False
                     query["cache_ir"] = False
@@ -94,6 +96,7 @@ class LazyExecutionModel(BaseExecutionModel):
 
                     query["execution"] = "incremental"
                     query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                    query["triggered_by"] = query["query_hash"]
                     ex_plan.append(query)
                 else:
                     cached_query = query
@@ -110,6 +113,7 @@ class LazyExecutionModel(BaseExecutionModel):
 
                     query["execution"] = "normal"
                     query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                    query["triggered_by"] = query["query_hash"]
                     ex_plan.append(query)
 
             self.wl_execution_plan = pd.DataFrame(data=ex_plan)
