@@ -31,7 +31,7 @@ class EagerExecutionModel(BaseExecutionModel):
                     # add query for normal execution
                     query["cache_reads"] += 1 # count one cache read for retrieving affected queries
                     query["execution"] = "normal"
-                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE.value
                     query["triggered_by"] = query["query_hash"]
                     ex_plan.append(query)
 
@@ -40,18 +40,18 @@ class EagerExecutionModel(BaseExecutionModel):
                     affected_queries = self.cache.get_affected_queries(query)
 
                     if len(affected_queries) > 0:
-                        affected_queries["bytes_scanned"] = delta
-                        affected_queries["result_size"] = affected_queries["scan_to_result_ratio"] * delta
-                        affected_queries["intermediate_result_size"] = affected_queries[
+                        affected_queries.loc[:, "bytes_scanned"] = delta
+                        affected_queries.loc[:, "result_size"] = affected_queries["scan_to_result_ratio"] * delta
+                        affected_queries.loc[:, "intermediate_result_size"] = affected_queries[
                                                                            "scan_to_i_result_ratio"] * delta
 
-                        affected_queries["timestamp"] = query["timestamp"]
-                        affected_queries["cache_result"] = True
-                        affected_queries["cache_ir"] = True
-                        affected_queries["cache_writes"] += 1
-                        affected_queries["execution"] = "incremental"
-                        affected_queries["execution_trigger"] = ExecutionTrigger.TRIGGERED_BY_WRITE
-                        affected_queries["triggered_by"] = query["query_hash"]
+                        affected_queries.loc[:, "timestamp"] = query["timestamp"]
+                        affected_queries.loc[:, "cache_result"] = True
+                        affected_queries.loc[:, "cache_ir"] = True
+                        affected_queries.loc[:, "cache_writes"] += 1
+                        affected_queries.loc[:, "execution"] = "incremental"
+                        affected_queries.loc[:, "execution_trigger"] = ExecutionTrigger.TRIGGERED_BY_WRITE.value
+                        affected_queries.loc[:, "triggered_by"] = query["query_hash"]
 
                         rows = [row for index, row in affected_queries.iterrows()]
 
@@ -67,7 +67,7 @@ class EagerExecutionModel(BaseExecutionModel):
                     query["write_volume"] = 0
                     query["cache_reads"] += 1
                     query["execution"] = "incremental"
-                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE.value
                     query["triggered_by"] = query["query_hash"]
                     ex_plan.append(query)
                 else:
@@ -84,7 +84,7 @@ class EagerExecutionModel(BaseExecutionModel):
                         query["cache_writes"] += 1
 
                     query["execution"] = "normal"
-                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE.value
                     query["triggered_by"] = query["query_hash"]
                     ex_plan.append(query)
 

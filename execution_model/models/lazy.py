@@ -47,7 +47,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query["write_volume"] = 0
                         query["cache_reads"] += 1
                         query["execution"] = "incremental"
-                        query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                        query["execution_trigger"] = ExecutionTrigger.IMMEDIATE.value
                         query["triggered_by"] = query["query_hash"]
 
                         ex_plan.append(query)
@@ -56,7 +56,7 @@ class LazyExecutionModel(BaseExecutionModel):
                 else:
                     pending_updates["timestamp"] = query["timestamp"]
                     pending_updates["execution"] = "normal"
-                    pending_updates["execution_trigger"] = ExecutionTrigger.DEFERRED
+                    pending_updates["execution_trigger"] = ExecutionTrigger.TRIGGERED_BY_READ.value
                     pending_updates["triggered_by"] = query["query_hash"]
                     query["was_cached"] = False
                     query["cache_result"] = False
@@ -95,7 +95,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query["cache_writes"] += 1
 
                     query["execution"] = "incremental"
-                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE.value
                     query["triggered_by"] = query["query_hash"]
                     ex_plan.append(query)
                 else:
@@ -112,7 +112,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query["cache_writes"] += 1
 
                     query["execution"] = "normal"
-                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE
+                    query["execution_trigger"] = ExecutionTrigger.IMMEDIATE.value
                     query["triggered_by"] = query["query_hash"]
                     ex_plan.append(query)
 
