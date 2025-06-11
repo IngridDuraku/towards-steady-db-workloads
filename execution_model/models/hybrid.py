@@ -33,21 +33,21 @@ class HybridModel(BaseExecutionModel):
     def get_load_threshold(self):
         self.wl["load"] = self.wl.apply(lambda query: estimate_query_load(query, self.load_ref), axis=1)
         df_hr = self.wl.groupby(["hour"])["load"].sum().reset_index(name="load")
-        load_threshold = df_hr["load"].quantile(0.5)
+        load_threshold = df_hr["load"].mean()
 
         return 0.7 * load_threshold # 10% tolerance
 
     def run_dependencies(self, dependencies, timestamp, execution_trigger, triggered_by):
-        queries_plan = pd.DataFrame(columns=WORKLOAD_PLAN_COL_LIST)
-        queries_plan.loc[: len(dependencies) - 1] = dependencies
+        dependencies = dependencies.drop(columns="id")
+        queries_plan = dependencies.copy()
         queries_plan.loc[:, "timestamp"] = timestamp
         queries_plan.loc[:, "hour"] = self.current_hour
         queries_plan.loc[:, "execution"] = "normal"
         queries_plan.loc[:, "was_cached"] = False
-        queries_plan.loc[:, "cache_results"] = False
+        queries_plan.loc[:, "cache_result"] = False
         queries_plan.loc[:, "cache_ir"] = False
         queries_plan.loc[:, "write_inc_table"] = False
-        queries_plan.loc[: "execution_trigger"] = execution_trigger.value
+        queries_plan.loc[:, "execution_trigger"] = execution_trigger.value
         queries_plan.loc[:, "triggered_by"] = triggered_by
 
         # get affected queries
@@ -61,9 +61,7 @@ class HybridModel(BaseExecutionModel):
         # FIXME: results in larger deltas but that is OK for now
         self.cache.cache.loc[affected_queries_mask, "delta"] = dependencies["write_volume"].sum()
 
-        start = len(self.wl_execution_plan)
-        end = start + len(queries_plan) - 1
-        self.wl_execution_plan.loc[start:end] = queries_plan.values
+        self.wl_execution_plan = pd.concat([self.wl_execution_plan, queries_plan], ignore_index=True)
         self.hourly_load[str(self.current_hour)] += queries_plan["load"].sum()
 
     def execute_write(self, query,  trigger=ExecutionTrigger.IMMEDIATE, timestamp=None):
@@ -101,6 +99,8 @@ class HybridModel(BaseExecutionModel):
             query["cache_reads"] += 1 # read dependencies
             query["execution_trigger"] = trigger.value # read dependencies
             query["triggered_by"] = query["query_hash"] # read dependencies
+            query["timestamp"] = timestamp
+            query["hour"] = self.current_hour
 
             self.hourly_load[str(self.current_hour)] += query["load"]
             self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
