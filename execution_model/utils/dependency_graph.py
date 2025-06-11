@@ -15,14 +15,14 @@ class DependencyGraph:
         new_row["id"] = new_id
         self.df.loc[len(self.df)] = new_row
 
-        def foo(tables):
+        def find_dependencies(tables):
             if not tables:
                 return False
 
             read_tables = new_row["read_tables"].split(",")
             read_tables = set(read_tables)
 
-            write_tables = set(tables)
+            write_tables = {tables}
 
             affected_tables = set(read_tables & write_tables)
 
@@ -30,7 +30,7 @@ class DependencyGraph:
 
         mask1 = self.df["write_table"].notna()
         mask2 = new_row["unique_db_instance"] == self.df["unique_db_instance"]
-        mask3 = self.df["write_table"].apply(lambda tables: foo(tables))
+        mask3 = self.df["write_table"].apply(lambda tables: find_dependencies(tables))
         mask4 = self.df["id"] != new_row["id"]
 
         dep_rows = self.df.loc[mask1 & mask2 & mask3 & mask4, "id"]
