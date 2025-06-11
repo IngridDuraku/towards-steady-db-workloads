@@ -25,7 +25,7 @@ class QueryGenerator:
         # num read tables
         values = list(self.config["read_tables_distribution"].keys())
         p = list(self.config["read_tables_distribution"].values())
-        q_num_read_tables = np.random.choice(values, p=p)
+        q_num_read_tables = int(np.random.choice(values, p=p))
 
         # result_size
         if q_type == "select":
@@ -71,7 +71,13 @@ class QueryGenerator:
                       jitter) / 1000  # convert to seconds
 
         # specify unique_db_instance uniformly
-        q_db_id = np.random.randint(low=0, high=self.config["db_count"])
+        # q_db_id = np.random.randint(low=0, high=self.config["db_count"])
+        db_p = np.array(list(self.config["db_access_dist"].values()))
+        db_p /= type_p.sum()
+        q_db_id = np.random.choice(
+            list(self.config["db_access_dist"].keys()),
+            p=db_p
+        )
 
         # generate query_hash
         q_hash = generate_hash(

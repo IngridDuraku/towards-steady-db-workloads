@@ -9,7 +9,7 @@ class QueryScheduler:
         self.config = config
         self.query_pool = query_pool
         nums = list(range(1, self.config["table_count"] + 1))
-        self.table_pool = [str(num) + np.random.choice(["A", "B", "C"]) for num in nums]
+        self.table_pool = [str(num) + np.random.choice(["B"]) for num in nums]
 
     def get_random_timestamp_in_hour(self, hour):
         start = pd.Timestamp(self.config["start_time"])
@@ -17,6 +17,50 @@ class QueryScheduler:
         return start + datetime.timedelta(seconds=seconds_offset)
 
     def assign_timestamps(self):
+        def assign_read_tables(q):
+            db_id = q["unique_db_instance"]
+            table_pool = np.array(list(self.config["tables_read_access_dist"][db_id].keys()))
+            if len(table_pool) == 0:
+                table_pool = self.table_pool
+            else:
+                table_pool = table_pool + 'A'
+
+            count = min(q["num_read_tables"], len(table_pool))
+            read_table_p = np.array(list(self.config["tables_read_access_dist"][db_id].values()))
+
+            if len(read_table_p) == 0:
+                read_table_p = [1/len(table_pool)] * len(table_pool) # uniform
+
+            read_tables = np.random.choice(
+                table_pool,
+                count,
+                p=read_table_p,
+                replace=False
+            )
+
+            return ",".join(read_tables)
+
+        def assign_write_table(q):
+            db_id = q["unique_db_instance"]
+            table_pool = np.array(list(self.config["tables_write_access_dist"][db_id].keys()))
+            if len(table_pool) == 0:
+                table_pool = self.table_pool
+            else:
+                table_pool = table_pool + 'A'
+
+            write_table_p = np.array(list(self.config["tables_write_access_dist"][db_id].values()))
+
+            if len(write_table_p) == 0:
+                write_table_p = [1/len(table_pool)] * len(table_pool) # uniform
+
+            write_table = np.random.choice(
+                table_pool,
+                p=write_table_p,
+                replace=False
+            )
+
+            return write_table
+
         hours = self.config["duration_h"] # hours of execution
         read_q_condition = self.query_pool["query_type"] == "select"
         write_q_condition = self.query_pool["query_type"] != "select"
@@ -37,34 +81,17 @@ class QueryScheduler:
 
             if not read_queries.empty:
                 read_queries["hour"] = h
-                read_tables = np.random.choice(
-                    self.table_pool,
-                    self.config["hourly_distribution_r"][h]["tables_count"]
-                )
-                read_queries["read_tables"] = read_queries.apply(lambda q: ",".join(np.random.choice(
-                    read_tables,
-                    min(q["num_read_tables"], len(read_tables)),
-                    replace=False
-                )), axis=1)
+                read_queries["read_tables"] = read_queries.apply(lambda q: assign_read_tables(q), axis=1)
 
                 read_queries["write_table"] = None
                 read_queries["timestamp"] = [self.get_random_timestamp_in_hour(h) for _ in range(read_q_count)]
 
             if not write_queries.empty:
                 write_queries["hour"] = h
-                read_tables = np.random.choice(
-                    self.table_pool,
-                    self.config["hourly_distribution_w"][h]["tables_count"]
-                )
-
-                write_queries["read_tables"] = write_queries.apply(lambda q: ",".join(np.random.choice(
-                    read_tables,
-                    min(q["num_read_tables"], len(read_tables)),
-                    replace=False
-                )), axis=1)
+                write_queries["read_tables"] = write_queries.apply(lambda q: assign_read_tables(q), axis=1)
 
                 write_queries["timestamp"] = [self.get_random_timestamp_in_hour(h) for _ in range(write_q_count)]
-                write_queries["write_table"] = [np.random.choice(self.table_pool) for _ in range(write_q_count)]
+                write_queries["write_table"] = write_queries.apply(lambda q: assign_write_table(q), axis=1)
 
             hourly_wl = pd.concat([hourly_wl, read_queries, write_queries])
 

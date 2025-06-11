@@ -1,5 +1,6 @@
 import datetime
 import math
+from collections import Counter
 
 import duckdb
 import pandas as pd
@@ -117,6 +118,52 @@ class RedsetWorkloadExtractor:
 
         return read_table_counts.to_dict()
 
+    def get_table_read_access_pattern(self):
+        db_ids = self.cluster_data["database_id"].nunique()
+        dist = dict()
+        for db_id in range(db_ids):
+            mask = self.cluster_data['database_id'] == db_id
+            data = self.cluster_data[mask]
+
+            table_reads = data['read_table_ids'].dropna().str.split(',')
+            flat_list = [table.strip() for sublist in table_reads for table in sublist if table.strip() != '']
+            counts = Counter(flat_list)
+
+            # Step 3: Compute percentages
+            total_accesses = sum(counts.values())
+            distribution = {table: (count / total_accesses) for table, count in counts.items()}
+
+            dist[db_id] = distribution
+
+        return dist
+
+    def get_table_write_access_pattern(self):
+        db_ids = self.cluster_data["database_id"].nunique()
+        dist = dict()
+        for db_id in range(db_ids):
+            mask = self.cluster_data['database_id'] == db_id
+            data = self.cluster_data[mask]
+
+            table_reads = data['write_table_ids'].dropna().str.split(',')
+            flat_list = [table.strip() for sublist in table_reads for table in sublist if table.strip() != '']
+            counts = Counter(flat_list)
+
+            # Step 3: Compute percentages
+            total_accesses = sum(counts.values())
+            distribution = {table: (count / total_accesses) for table, count in counts.items()}
+
+            dist[db_id] = distribution
+
+        return dist
+
+    def get_db_access_pattern(self):
+        db_list = list(self.cluster_data["database_id"])
+        counts = Counter(db_list)
+        total_accesses = sum(counts.values())
+        distribution = {table: (count / total_accesses) for table, count in counts.items()}
+
+        return distribution
+
     def max_read_tables_per_query(self):
         read_tables_counts = self.cluster_data['read_table_ids'].apply(lambda x: len(x.split(',')))
 
@@ -155,6 +202,7 @@ class RedsetWorkloadExtractor:
                 "write_volume": base_config["query_config"]["write_volume"],
                 "max_num_read_tables": self.max_read_tables_per_query(),
                 "read_tables_distribution": self.get_read_tables_distribution(),
+                "db_access_dist": self.get_db_access_pattern(),
                 "ir_scale": base_config["query_config"]["ir_scale"],
                 "db_count": self.get_num_db(),
             },
@@ -163,7 +211,9 @@ class RedsetWorkloadExtractor:
                 "hourly_distribution_w": h_dist_w,
                 "start_time": self.start_time.strftime('%Y-%m-%d %H:%M:%S'),
                 "duration_h": self.duration_h,
-                "table_count": self.get_num_tables()
+                "table_count": self.get_num_tables(),
+                "tables_read_access_dist": self.get_table_read_access_pattern(),
+                "tables_write_access_dist": self.get_table_write_access_pattern(),
             },
             "repetitiveness": self.estimate_repetitiveness(),
             "seed": base_config["seed"]
