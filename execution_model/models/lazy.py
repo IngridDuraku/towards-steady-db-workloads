@@ -48,13 +48,15 @@ class LazyExecutionModel(BaseExecutionModel):
                     query["cache_ir"] = False
                     query["write_inc_table"] = False
 
-                    write_tables = set(pending_updates["write_table"])
-                    affected_queries_mask = self.cache.cache.apply(
-                        lambda q: len(set(q["read_tables"].split(",")) & write_tables) > 0,
-                        axis=1
-                    )
-                    self.cache.cache.loc[affected_queries_mask, "dirty"] = True
-                    self.cache.cache.loc[affected_queries_mask, "delta"] = pending_updates["write_volume"].sum()
+
+                    if not self.cache.cache.empty:
+                        write_tables = set(pending_updates["write_table"])
+                        affected_queries_mask = self.cache.cache.apply(
+                            lambda q: len(set(q["read_tables"].split(",")) & write_tables) > 0,
+                            axis=1
+                        )
+                        self.cache.cache.loc[affected_queries_mask, "dirty"] = True
+                        self.cache.cache.loc[affected_queries_mask, "delta"] = pending_updates["write_volume"].sum()
 
                     self.wl_execution_plan = pd.concat([self.wl_execution_plan, pending_updates], ignore_index=True)
 

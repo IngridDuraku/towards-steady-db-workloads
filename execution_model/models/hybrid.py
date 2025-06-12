@@ -52,14 +52,15 @@ class HybridModel(BaseExecutionModel):
 
         # get affected queries
         # update deltas + mark as "dirty"
-        write_tables = set(dependencies["write_table"])
-        affected_queries_mask = self.cache.cache.apply(
-            lambda q: len(set(q["read_tables"].split(",")) & write_tables) > 0,
-            axis=1
-        )
-        self.cache.cache.loc[affected_queries_mask, "dirty"] = True
-        # FIXME: results in larger deltas but that is OK for now
-        self.cache.cache.loc[affected_queries_mask, "delta"] = dependencies["write_volume"].sum()
+        if not self.cache.cache.empty:
+            write_tables = set(dependencies["write_table"])
+            affected_queries_mask = self.cache.cache.apply(
+                lambda q: len(set(q["read_tables"].split(",")) & write_tables) > 0,
+                axis=1
+            )
+            self.cache.cache.loc[affected_queries_mask, "dirty"] = True
+            # FIXME: results in larger deltas but that is OK for now
+            self.cache.cache.loc[affected_queries_mask, "delta"] = dependencies["write_volume"].sum()
 
         self.wl_execution_plan = pd.concat([self.wl_execution_plan, queries_plan], ignore_index=True)
         self.hourly_load[str(self.current_hour)] += queries_plan["load"].sum()
