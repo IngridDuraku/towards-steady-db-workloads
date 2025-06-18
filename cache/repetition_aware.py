@@ -28,6 +28,7 @@ class RepetitionAwareCache(CacheBase):
     def get_affected_queries(self, query):
         mask1 = self.cache["read_tables"].apply(lambda tables: query.write_table in tables)
         mask2 = self.cache["unique_db_instance"] == query.unique_db_instance
+        self.insights["get_requests"] += 1
 
         return self.cache[mask1 & mask2]
 
