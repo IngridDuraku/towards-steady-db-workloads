@@ -46,7 +46,7 @@ class HybridModel(BaseExecutionModel):
         queries_plan.loc[:, "was_cached"] = False
         queries_plan.loc[:, "cache_result"] = False
         queries_plan.loc[:, "cache_ir"] = False
-        queries_plan.loc[:, "write_inc_table"] = False
+        queries_plan.loc[:, "write_delta"] = False
         queries_plan.loc[:, "execution_trigger"] = execution_trigger.value
         queries_plan.loc[:, "triggered_by"] = triggered_by
 
@@ -61,6 +61,7 @@ class HybridModel(BaseExecutionModel):
             self.cache.cache.loc[affected_queries_mask, "dirty"] = True
             # FIXME: results in larger deltas but that is OK for now
             self.cache.cache.loc[affected_queries_mask, "delta"] = dependencies["write_volume"].sum()
+            queries_plan.loc[:, "write_delta"] = True
 
         self.wl_execution_plan = pd.concat([self.wl_execution_plan, queries_plan], ignore_index=True)
         self.hourly_load[str(self.current_hour)] += queries_plan["load"].sum()
@@ -83,7 +84,7 @@ class HybridModel(BaseExecutionModel):
         if self.load_threshold - self.hourly_load[str(self.current_hour)] >= required_capacity:
             if not dependencies.empty:
                 self.run_dependencies(dependencies, timestamp, ExecutionTrigger.TRIGGERED_BY_WRITE ,query["query_hash"])
-                query["cache_writes"] += 1  # mark affected queries
+                query["cache_writes"] += 1  # mark affected queries and deltas
 
             self.dependency_graph.remove_with_dependencies(qid)
 
@@ -95,9 +96,9 @@ class HybridModel(BaseExecutionModel):
                 )
                 self.cache.cache.loc[affected_queries_mask, "dirty"] = True
                 self.cache.cache.loc[affected_queries_mask, "delta"] += query["write_volume"]
+                query.loc["write_delta"] = True
 
             query["execution"] = "normal"
-            query["cache_reads"] += 1 # read dependencies
             query["execution_trigger"] = trigger.value # read dependencies
             query["triggered_by"] = query["query_hash"] # read dependencies
             query["timestamp"] = timestamp
@@ -133,8 +134,7 @@ class HybridModel(BaseExecutionModel):
             query.loc["intermediate_result_size"] = i_result_delta
 
             query.loc["was_cached"] = False
-            query.loc["write_inc_table"] = False
-            query.loc["cache_reads"] = 1
+            query.loc["write_delta"] = False
             query.loc["size"] = query["result_size"] + query["intermediate_result_size"]
             query.loc["dirty"] = False
             query.loc["delta"] = 0
@@ -153,7 +153,6 @@ class HybridModel(BaseExecutionModel):
             query.loc["bytes_scanned"] = 0
             query.loc["cpu_time"] = 0
             query.loc["write_volume"] = 0
-            query.loc["cache_reads"] += 1
 
         query.loc["execution"] = "incremental"
         query.loc["execution_trigger"] = trigger.value
@@ -190,7 +189,7 @@ class HybridModel(BaseExecutionModel):
         if is_cached:
             query["cache_ir"] = True
             query["cache_result"] = True
-            query["write_inc_table"] = False
+            query["write_delta"] = False
             query["cache_writes"] += 1
 
         query["execution"] = "normal"
@@ -205,6 +204,7 @@ class HybridModel(BaseExecutionModel):
         cache = cache.sort_values(by=["repetition_coefficient", "load"], ascending=False).iloc[:count]
 
         for hash_index, query in cache.iterrows():
+            query["cache_reads"] = 1
             self.execute_incrementally(query, hash_index, ExecutionTrigger.DEFERRED, timestamp)
             if self.load_threshold - self.hourly_load[str(self.current_hour)] <= 0:
                 break
@@ -251,6 +251,7 @@ class HybridModel(BaseExecutionModel):
                     self.execute_write(query)
                     continue
 
+                query["cache_reads"] = 1
                 if query["query_hash"] in self.cache:
                     self.execute_incrementally(query, query["query_hash"])
                 else:

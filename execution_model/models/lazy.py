@@ -46,7 +46,7 @@ class LazyExecutionModel(BaseExecutionModel):
                     query["was_cached"] = False
                     query["cache_result"] = False
                     query["cache_ir"] = False
-                    query["write_inc_table"] = False
+                    query["write_delta"] = False
 
 
                     if not self.cache.cache.empty:
@@ -57,11 +57,14 @@ class LazyExecutionModel(BaseExecutionModel):
                         )
                         self.cache.cache.loc[affected_queries_mask, "dirty"] = True
                         self.cache.cache.loc[affected_queries_mask, "delta"] = pending_updates["write_volume"].sum()
+                        pending_updates["write_delta"] = True
+                        query.loc["cache_writes"] = 1
 
                     self.wl_execution_plan = pd.concat([self.wl_execution_plan, pending_updates], ignore_index=True)
 
                 self.dependency_graph.remove_with_dependencies(qid)
 
+                query.loc["cache_reads"] += 1
                 if query["query_hash"] in self.cache:
                     cached_query = self.cache.get(query["query_hash"])
                     if cached_query["dirty"]:
@@ -74,8 +77,7 @@ class LazyExecutionModel(BaseExecutionModel):
                         query.loc["intermediate_result_size"] = i_result_delta
 
                         query.loc["was_cached"] = False
-                        query.loc["write_inc_table"] = False
-                        query.loc["cache_reads"] = 1
+                        query.loc["write_delta"] = False
                         query.loc["size"] = query["result_size"] + query["intermediate_result_size"]
                         query.loc["dirty"] = False
                         query.loc["delta"] = 0
@@ -87,14 +89,12 @@ class LazyExecutionModel(BaseExecutionModel):
                         if is_cached:
                             query.loc["cache_ir"] = True
                             query.loc["cache_result"] = True
-                            query.loc["cache_writes"] = 1
+                            query.loc["cache_writes"] += 1
                     else:
                         query.loc["was_cached"] = True
-                        query.loc["cache_writes"] = 0
                         query.loc["bytes_scanned"] = 0
                         query.loc["cpu_time"] = 0
                         query.loc["write_volume"] = 0
-                        query.loc["cache_reads"] += 1
 
                     query.loc["execution"] = "incremental"
                     query.loc["execution_trigger"] = ExecutionTrigger.IMMEDIATE.value
@@ -113,7 +113,7 @@ class LazyExecutionModel(BaseExecutionModel):
                     if is_cached:
                         query["cache_ir"] = True
                         query["cache_result"] = True
-                        query["write_inc_table"] = False
+                        query["write_delta"] = False
                         query["cache_writes"] += 1
 
                     query["execution"] = "normal"

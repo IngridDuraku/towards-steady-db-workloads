@@ -40,6 +40,7 @@ class EagerExecutionModel(BaseExecutionModel):
                     affected_queries = self.cache.get_affected_queries(query)
 
                     if len(affected_queries) > 0:
+                        query["cache_writes"] = 1 # write all changes in bulk
                         affected_queries.loc[:, "bytes_scanned"] = delta
                         affected_queries.loc[:, "result_size"] = affected_queries["scan_to_result_ratio"] * delta
                         affected_queries.loc[:, "intermediate_result_size"] = affected_queries[
@@ -48,7 +49,6 @@ class EagerExecutionModel(BaseExecutionModel):
                         affected_queries.loc[:, "timestamp"] = query["timestamp"]
                         affected_queries.loc[:, "cache_result"] = True
                         affected_queries.loc[:, "cache_ir"] = True
-                        affected_queries.loc[:, "cache_writes"] += 1
                         affected_queries.loc[:, "execution"] = "incremental"
                         affected_queries.loc[:, "execution_trigger"] = ExecutionTrigger.TRIGGERED_BY_WRITE.value
                         affected_queries.loc[:, "triggered_by"] = query["query_hash"]
@@ -80,7 +80,7 @@ class EagerExecutionModel(BaseExecutionModel):
                     if is_cached:
                         query["cache_ir"] = True
                         query["cache_result"] = True
-                        query["write_inc_table"] = False
+                        query["write_delta"] = False
                         query["cache_writes"] += 1
 
                     query["execution"] = "normal"
