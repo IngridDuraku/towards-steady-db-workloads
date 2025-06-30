@@ -94,6 +94,7 @@ def get_latency_props(plan, hw_params):
         "q25": immediate_queries["latency"].quantile(0.25),
         "q75": immediate_queries["latency"].quantile(0.25),
         "q50": immediate_queries["latency"].quantile(0.5),
+        "std": immediate_queries["latency"].std()
     }
 
     return latency
@@ -102,11 +103,11 @@ def get_cost_props(model, hw_params):
     compute_cost = model.get_compute_cost(hw_params)
     storage_cost = model.get_storage_cost(hw_params)
 
-    if not model.cache:
-        put_requests = 0
-        get_requests = 0
-        usage = 0
-    else:
+    put_requests = 0
+    get_requests = 0
+    usage = 0
+
+    if model.cache:
         put_requests = model.cache.insights["put_requests"]
         get_requests = model.cache.insights["get_requests"]
         usage = model.cache.usage
@@ -124,3 +125,25 @@ def get_cost_props(model, hw_params):
     }
 
     return cost
+
+def estimate_latency(plan, hw_params):
+    def get_query_latency(q):
+        if q["query_type"] != "select" or q["execution_trigger"] != "immediate":
+            return None
+
+        mask1 = plan["triggered_by"] == q["query_hash"]
+        mask2 = plan["query_hash"] != q["query_hash"]
+        triggered_q = plan[mask2 & mask1]
+
+        return q["runtime"] + triggered_q["runtime"].sum()
+
+    plan["runtime"] = BasicRuntimeEstimator.estimate_runtime_per_query(hw_params, plan)
+
+    # mask1 = plan["execution_trigger"] == "immediate"
+    # mask2 = plan["query_type"] == "select"
+    #
+    # immediate_queries = plan[mask1 & mask2]
+
+    latency = plan.apply(lambda q: get_query_latency(q), axis=1)
+
+    return latency

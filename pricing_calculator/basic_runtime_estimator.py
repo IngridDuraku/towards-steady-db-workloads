@@ -1,23 +1,28 @@
 import numpy as np
-import pandas as pd
 
-from evaluation.hw_params import HW_PARAMETERS
 from pricing_calculator.const import GiB_TO_BYTES, S3_NETWORK_SPEED_SCALE
 
 
 class BasicRuntimeEstimator:
     @staticmethod
     def estimate_runtime_per_query(hw_parameters, wl):
-        network_speed = hw_parameters["instance"]["network_speed"] * GiB_TO_BYTES * S3_NETWORK_SPEED_SCALE
+        network_speed = hw_parameters["instance"]["network_speed"] * GiB_TO_BYTES * S3_NETWORK_SPEED_SCALE * 0.8
         if hw_parameters["cache"]["type"] == "s3":
-            network_speed *= 0.8
+            cache_speed = network_speed
         else:
-            network_speed = hw_parameters["cache"]["throughput_mb_per_s"] * 10e6
+            cache_speed = hw_parameters["cache"]["throughput_mb_per_s"] * 10e6
 
         # cost components
         # 1- Query runtime
         cpu_time = wl["cpu_time"] / hw_parameters["instance"]["vCPUs"]
-        network_time = (wl["bytes_scanned"] + wl["write_volume"]) / network_speed
+
+        network_speed_map = {
+            "incremental": cache_speed,
+            "normal": network_speed
+        }
+
+        wl["network_speed"] = wl["execution"].map(network_speed_map)
+        network_time = (wl["bytes_scanned"] + wl["write_volume"]) / wl["network_speed"]
 
         # is_write = wl["query_type"].isin(["insert", "delete", "update"])
         # wl.loc[:, "db_latency"] = pd.Series(np.random.uniform(
@@ -40,7 +45,7 @@ class BasicRuntimeEstimator:
 
         read_cache_bytes = wl["was_cached"] * wl["result_size"]
 
-        cache_time = (write_cache_bytes + read_cache_bytes) / network_speed + cache_latency
+        cache_time = (write_cache_bytes + read_cache_bytes) / cache_speed + cache_latency
 
         return cpu_time + network_time + cache_time # + wl["db_latency"]
 

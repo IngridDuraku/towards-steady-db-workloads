@@ -9,8 +9,8 @@ HW_PARAMETERS = {
   "cache": {
     "s3": {
       "cost_per_gb": 0.023,
-      "put_cost": 0.005,
-      "get_cost": 0.0004,
+      "put_cost": 0.005, # per 1000 requests
+      "get_cost": 0.0004, # per 1000 requests
       "request_latency_min": 100,
       "request_latency_max": 200,
       "type": "s3",

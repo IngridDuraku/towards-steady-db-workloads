@@ -35,7 +35,10 @@ class BaseExecutionModel(ABC):
 
         cache_usage = 0
         if self.cache:
-            cache_usage = self.cache.usage
+            if self.cache.cache_type == "s3":
+                cache_usage = self.cache.usage
+            else:
+                cache_usage = self.cache.max_capacity # ebs (fixed capacity provisioned)
 
         return PricingCalculator.get_total_cost(hw_parameters, self.wl_execution_plan, cache_usage)
 
@@ -51,6 +54,9 @@ class BaseExecutionModel(ABC):
 
         cache_usage = 0
         if self.cache:
-            cache_usage = self.cache.usage
+            if self.cache.cache_type == "s3":
+                cache_usage = self.cache.usage
+            else:
+                cache_usage = self.cache.max_capacity  # ebs (fixed capacity provisioned)
 
         return PricingCalculator.get_storage_cost(hw_parameters, self.wl_execution_plan, cache_usage)

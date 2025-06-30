@@ -16,8 +16,8 @@ class RepetitionAwareCache(CacheBase):
     }
     """
 
-    def __init__(self, max_capacity, structure, types, index_by):
-        super().__init__(max_capacity)
+    def __init__(self, max_capacity, structure, types, index_by, cache_type="s3"):
+        super().__init__(max_capacity, cache_type)
         self.cache = pd.DataFrame(
             columns=structure
         ).astype(types)

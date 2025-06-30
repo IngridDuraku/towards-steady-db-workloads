@@ -4,7 +4,7 @@ import pandas as pd
 
 
 class CacheBase(ABC):
-    def __init__(self, max_capacity):
+    def __init__(self, max_capacity, cache_type="s3"):
         self.max_capacity = max_capacity
         self.usage = 0
         self.cache = pd.DataFrame()
@@ -15,6 +15,7 @@ class CacheBase(ABC):
             "put_requests": 0,
             "evictions": 0,
         }
+        self.cache_type = cache_type
 
     def __contains__(self, key):
         return key in self.cache.index

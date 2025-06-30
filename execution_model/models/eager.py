@@ -16,7 +16,8 @@ class EagerExecutionModel(BaseExecutionModel):
                 **self.wl.dtypes.apply(lambda x: x.name).to_dict(),
                 "size": "float64"
             },
-            index_by="query_hash"
+            index_by="query_hash",
+            cache_type=cache_config["cache_type"]
         )
 
     def generate_workload_execution_plan(self):

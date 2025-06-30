@@ -16,7 +16,8 @@ class HybridModel(BaseExecutionModel):
             max_capacity=cache_config["max_capacity"],
             structure=CACHE_COLS_LIST,
             types=CACHE_TYPES_DICT,
-            index_by="query_hash"
+            index_by="query_hash",
+            cache_type=cache_config["cache_type"]
         )
         self.dependency_graph = DependencyGraph(
             pd.DataFrame({}, columns=WORKLOAD_PLAN_COL_LIST +  ["id"])

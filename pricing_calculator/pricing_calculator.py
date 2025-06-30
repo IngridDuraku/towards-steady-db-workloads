@@ -1,3 +1,5 @@
+import pandas as pd
+
 from pricing_calculator.basic_runtime_estimator import BasicRuntimeEstimator
 
 
@@ -18,7 +20,10 @@ class PricingCalculator:
 
     @staticmethod
     def get_storage_cost(hw_parameters, wl, cache_usage):
-        cache_cost = cache_usage * hw_parameters["cache"]["cost_per_gb"] / 1e9
+        wl["timestamp"] = pd.to_datetime(wl["timestamp"])
+        duration_seconds = (wl["timestamp"].max() - wl["timestamp"].min()).total_seconds()
+        month_in_seconds = 30 * 24 * 60 * 60
+        cache_cost = cache_usage * hw_parameters["cache"]["cost_per_gb"] / 1e9 * duration_seconds / month_in_seconds
 
         if hw_parameters["cache"]["type"] == "s3":
             s3_put_requests_cost = wl["cache_writes"].sum() * hw_parameters["cache"]["put_cost"] / 1000
