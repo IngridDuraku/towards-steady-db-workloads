@@ -27,6 +27,7 @@ class QueryScheduler:
 
             count = min(q["num_read_tables"], len(table_pool))
             read_table_p = np.array(list(self.config["tables_read_access_dist"][db_id].values()))
+            read_table_p = [p / read_table_p.sum() for p in read_table_p]
 
             if len(read_table_p) == 0:
                 read_table_p = [1/len(table_pool)] * len(table_pool) # uniform
@@ -49,6 +50,7 @@ class QueryScheduler:
                 table_pool = table_pool + 'A'
 
             write_table_p = np.array(list(self.config["tables_write_access_dist"][db_id].values()))
+            write_table_p = [p / write_table_p.sum() for p in write_table_p]
 
             if len(write_table_p) == 0:
                 write_table_p = [1/len(table_pool)] * len(table_pool) # uniform
@@ -70,8 +72,8 @@ class QueryScheduler:
         wl = self.query_pool.copy()
 
         for h in range(1, hours):
-            read_q_count = int(self.config["hourly_distribution_r"][h]["p"] * read_size)
-            write_q_count = int(self.config["hourly_distribution_w"][h]["p"] * write_size)
+            read_q_count = int(self.config["hourly_distribution_r"][str(h)]["p"] * read_size)
+            write_q_count = int(self.config["hourly_distribution_w"][str(h)]["p"] * write_size)
 
             read_queries = wl.loc[read_q_condition].sample(read_q_count)
             wl.drop(read_queries.index, inplace=True)

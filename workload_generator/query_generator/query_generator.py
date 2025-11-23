@@ -19,7 +19,7 @@ class QueryGenerator:
         bytes_scanned = self.config["bytes_scanned"]
         lb = max(bytes_scanned["lower_bound_mb"], 1)
         up = max(bytes_scanned["upper_bound_gb"], 1)
-        mu, sigma = compute_lognormal_params(lb, up)
+        mu, sigma = compute_lognormal_params(lb, up,0.999, 0.25)
         q_bytes_scanned = int(np.random.lognormal(mean=mu, sigma=sigma))
 
         # num read tables
