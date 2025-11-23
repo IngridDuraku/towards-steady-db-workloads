@@ -1,5 +1,6 @@
 import pandas as pd
 
+from execution_model.utils.const import ExecutionTrigger
 from pricing_calculator.basic_runtime_estimator import BasicRuntimeEstimator
 
 
@@ -31,3 +32,13 @@ class PricingCalculator:
             cache_cost += s3_put_requests_cost + s3_get_requests_cost
 
         return cache_cost
+
+    @staticmethod
+    def get_pending_cost(hw_parameters, wl):
+        pending = wl["execution_trigger"] == ExecutionTrigger.PENDING.value
+        queries = wl[pending]
+
+        if queries.empty:
+            return 0
+
+        return PricingCalculator.get_compute_cost(hw_parameters, queries)
