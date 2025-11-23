@@ -60,3 +60,6 @@ class BaseExecutionModel(ABC):
                 cache_usage = self.cache.max_capacity  # ebs (fixed capacity provisioned)
 
         return PricingCalculator.get_storage_cost(hw_parameters, self.wl_execution_plan, cache_usage)
+
+    def get_pending_cost(self, hw_parameters):
+        return PricingCalculator.get_pending_cost(hw_parameters, self.wl_execution_plan)

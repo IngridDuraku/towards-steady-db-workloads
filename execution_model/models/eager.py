@@ -48,6 +48,7 @@ class EagerExecutionModel(BaseExecutionModel):
                                                                            "scan_to_i_result_ratio"] * delta
 
                         affected_queries.loc[:, "timestamp"] = query["timestamp"]
+                        affected_queries.loc[:, "hour"] = query["hour"]
                         affected_queries.loc[:, "cache_result"] = True
                         affected_queries.loc[:, "cache_ir"] = True
                         affected_queries.loc[:, "execution"] = "incremental"

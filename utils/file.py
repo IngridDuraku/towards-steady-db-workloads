@@ -20,5 +20,5 @@ def load_json(file_path):
 
 
 def save_json_file(obj, file_path):
-    with open(file_path, mode="x") as f:
+    with open(file_path, mode="w") as f:
         json.dump(obj, f, indent=4)

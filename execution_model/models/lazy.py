@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pandas as pd
 
 from cache.repetition_aware import RepetitionAwareCache
@@ -122,6 +124,30 @@ class LazyExecutionModel(BaseExecutionModel):
                     query["triggered_by"] = query["query_hash"]
 
                     self.wl_execution_plan.loc[len(self.wl_execution_plan)] = query
+
+            hour = self.wl_execution_plan["hour"].max() + 1
+            timestamp = self.wl_execution_plan["timestamp"].max() + timedelta(hours=1)
+
+            pending_queries = self.dependency_graph.df
+            if not pending_queries.empty:
+                pending_queries.drop(columns="id", inplace=True)
+                pending_queries.loc[:, "timestamp"] = timestamp
+                pending_queries.loc[:, "hour"] = hour
+                pending_queries.loc[:, "execution"] = "normal"
+                pending_queries.loc[:, "execution_trigger"] = ExecutionTrigger.PENDING.value
+                pending_queries.loc[:, "triggered_by"] = None
+
+                if not self.cache.cache.empty:
+                    write_tables = set(pending_queries["write_table"])
+                    affected_queries_mask = self.cache.cache.apply(
+                        lambda q: len(set(q["read_tables"].split(",")) & write_tables) > 0,
+                        axis=1
+                    )
+                    self.cache.cache.loc[affected_queries_mask, "dirty"] = True
+                    self.cache.cache.loc[affected_queries_mask, "delta"] = pending_queries["write_volume"].sum()
+                    pending_queries["write_delta"] = True
+
+                self.wl_execution_plan = pd.concat([self.wl_execution_plan, pending_queries], ignore_index=True)
 
         return self.wl_execution_plan
 

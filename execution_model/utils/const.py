@@ -78,3 +78,4 @@ class ExecutionTrigger(Enum):
     DEFERRED = "deferred"
     TRIGGERED_BY_READ = "triggered_by_read"
     TRIGGERED_BY_WRITE = "triggered_by_write"
+    PENDING = "pending"

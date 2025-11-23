@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
 
@@ -26,7 +28,7 @@ class HybridModel(BaseExecutionModel):
         # self.set_execution_hour()
         self.current_hour = 1
         self.load_threshold = self.get_load_threshold()
-        self.hourly_load = { str(i): 0 for i in range(1, max(self.wl["hour"]) + 1) }
+        self.hourly_load = { str(i): 0 for i in range(1, int(max(self.wl["hour"])) + 2) }
         self.wl_execution_plan = pd.DataFrame(
             columns=WORKLOAD_PLAN_COL_LIST
         )
@@ -36,7 +38,7 @@ class HybridModel(BaseExecutionModel):
         df_hr = self.wl.groupby(["hour"])["load"].sum().reset_index(name="load")
         load_threshold = df_hr["load"].mean()
 
-        return 0.7 * load_threshold # 10% tolerance
+        return 1 * load_threshold # 10% tolerance
 
     def run_dependencies(self, dependencies, timestamp, execution_trigger, triggered_by):
         dependencies = dependencies.drop(columns="id")
@@ -205,6 +207,9 @@ class HybridModel(BaseExecutionModel):
         cache = cache.sort_values(by=["repetition_coefficient", "load"], ascending=False).iloc[:count]
 
         for hash_index, query in cache.iterrows():
+            if not hash_index in self.cache:
+                # checking if this query is still in cache (it could have been evicted)
+                continue
             query["cache_reads"] = 1
             self.execute_incrementally(query, hash_index, ExecutionTrigger.DEFERRED, timestamp)
             if self.load_threshold - self.hourly_load[str(self.current_hour)] <= 0:
@@ -249,7 +254,9 @@ class HybridModel(BaseExecutionModel):
                 last_timestamp = query["timestamp"]
 
                 if is_write:
-                    self.execute_write(query)
+                    # always pend - execute when needed or at the end of the hour if there is capacity left
+                    qid = self.dependency_graph.add_query(query)
+                    # self.execute_write(query)
                     continue
 
                 query["cache_reads"] = 1
@@ -258,6 +265,31 @@ class HybridModel(BaseExecutionModel):
                 else:
                     self.execute_read(query)
 
+            # schedule some pending queries on the last hour of execution
+            while self.load_threshold - self.hourly_load[str(self.current_hour)] > 0:
+                # refresh cache for repetitive & expensive queries
+                self.refresh_cache(20, last_timestamp)
+
+                # try to execute more pending queries
+                key_pool = list(self.dependency_graph.dependencies.keys())
+                count = min(10, len(key_pool))
+                keys = np.random.choice(key_pool, count)
+                queries = self.dependency_graph.df[self.dependency_graph.df["id"].isin(keys)]
+
+                run_query = True
+                for _, q in queries.iterrows():
+                    run_query = self.execute_write(q, ExecutionTrigger.DEFERRED, last_timestamp)
+                    if not run_query:
+                        break
+
+                if queries.empty or not run_query:
+                    break
+
+            if not self.dependency_graph.df.empty:
+                pending_queries = self.dependency_graph.df
+                self.current_hour += 1
+                last_timestamp = last_timestamp + timedelta(hours=1)
+                self.run_dependencies(pending_queries, last_timestamp, ExecutionTrigger.PENDING, None)
 
         self.wl_execution_plan.loc[:, "threshold"] = self.load_threshold
         return self.wl_execution_plan
