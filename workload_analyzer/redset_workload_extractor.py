@@ -1,11 +1,12 @@
 import datetime
 import math
 from collections import Counter
+from pathlib import Path
 
 import duckdb
 import pandas as pd
 
-redset_file_path = "data/full.parquet"
+redset_file_path =  Path(__file__).parent / "data/full.parquet"
 db_connection = duckdb.connect()
 
 class RedsetWorkloadExtractor:
@@ -85,6 +86,7 @@ class RedsetWorkloadExtractor:
         read_condition = self.cluster_data["query_type"].isin(["select"])
         read_queries = self.cluster_data[read_condition]
         df_hourly = self.get_df_hourly(read_queries)
+        df_hourly['hour'] = df_hourly['hour'].astype(str)
         df_hourly["p"] = df_hourly["load"]
         df_hourly.drop('load', inplace=True, axis=1)
         df_hourly["p"] = df_hourly["p"] / len(read_queries) if len(read_queries) > 0 else 0
@@ -95,6 +97,7 @@ class RedsetWorkloadExtractor:
         write_condition = ~read_condition
         write_queries = self.cluster_data[write_condition]
         df_hourly = self.get_df_hourly(write_queries)
+        df_hourly['hour'] = df_hourly['hour'].astype(str)
         df_hourly["p"] = df_hourly["load"]
         df_hourly.drop('load', inplace=True, axis=1)
         df_hourly["p"] = df_hourly["p"] / len(write_queries) if len(write_queries) != 0 else 0

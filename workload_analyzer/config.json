@@ -1,12 +1,12 @@
 {
   "query_config": {
     "result_size": {
-      "lower_bound_mb": 0.01,
-      "upper_bound_gb": 0.01
+      "lower_bound_mb": 0.0001,
+      "upper_bound_gb": 0.001
     },
     "write_volume": {
-      "lower_bound_mb": 0.01,
-      "upper_bound_gb": 0.1
+        "lower_bound_mb": 0.1,
+        "upper_bound_gb": 0.001
     },
     "ir_scale": 1.0
   },

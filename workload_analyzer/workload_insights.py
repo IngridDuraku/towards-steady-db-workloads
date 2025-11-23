@@ -25,7 +25,7 @@ class WorkloadInsights:
         df_hourly = df.groupby(["hour"])["load"].sum().reset_index(name="load")
         max_hr = max(df_hourly["hour"].max() + 1, 25)
         df_hourly.set_index("hour", inplace=True)
-        df_hourly = df_hourly.reindex(range(1, max_hr), fill_value=0)
+        df_hourly = df_hourly.reindex(range(1, int(max_hr)), fill_value=0)
         df_hourly.reset_index(inplace=True)
         df_hourly.columns = ['hour', 'load']
 
