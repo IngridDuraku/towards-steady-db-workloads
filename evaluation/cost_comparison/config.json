@@ -1,0 +1,10 @@
+{
+  "cache_type": "gp3",
+  "cache_size_range_gb": [
+    2,
+    4,
+    8, 16,
+    32
+  ],
+  "name": "wl1_gp3_2_to_32"
+}
