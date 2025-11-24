@@ -1,0 +1,164 @@
+{
+    "one_off": {
+        "cost": {
+            "total_cost": 0.013197672048922037,
+            "pending_cost": 0,
+            "compute_cost": 0,
+            "storage_cost": 0
+        },
+        "runtime": 439.9224016307346,
+        "cost_reduction": 0,
+        "speedup": 0,
+        "cache": {
+            "usage": 0,
+            "insights": 0
+        },
+        "latency": {
+            "mean": 0.4274746904469945,
+            "max": 9.374852222977294,
+            "min": 0.0013113201438439165,
+            "q25": 0.05959148396393974,
+            "q75": 0.05959148396393974,
+            "q50": 0.13603831812692993,
+            "std": 0.8546936567387202
+        },
+        "workload_insights": {
+            "size": 967,
+            "repetitiveness": 0.4881,
+            "query_type_frequencies": {
+                "select": 0.6846,
+                "insert": 0.3154,
+                "update": 0.0,
+                "delete": 0.0
+            },
+            "spikiness": 0.5328686422403296,
+            "std_dev": 0.31862244012413127
+        }
+    },
+    "eager": {
+        "cost": {
+            "total_cost": 0.012453848669841247,
+            "pending_cost": 0,
+            "compute_cost": 0.009869690635425496,
+            "storage_cost": 0.0025843437500000003
+        },
+        "runtime": 328.9942175697967,
+        "cost_reduction": 0.0563601956711407,
+        "speedup": 0.2521539790875429,
+        "cache": {
+            "usage": 999954357,
+            "insights": {
+                "cache_misses": 0,
+                "cache_hits": 0,
+                "get_requests": 305,
+                "put_requests": 358,
+                "evictions": 12
+            }
+        },
+        "latency": {
+            "mean": 0.24793946656985916,
+            "max": 9.374852222977294,
+            "min": 0.0010090234518140054,
+            "q25": 0.0015982663735344136,
+            "q75": 0.0015982663735344136,
+            "q50": 0.021481863853140645,
+            "std": 0.7179685730356685
+        },
+        "workload_insights": {
+            "size": 2254,
+            "repetitiveness": 0.7799,
+            "query_type_frequencies": {
+                "select": 0.8647,
+                "insert": 0.1353,
+                "update": 0.0,
+                "delete": 0.0
+            },
+            "spikiness": 0.5188574308614485,
+            "std_dev": 0.3183966706593253
+        }
+    },
+    "lazy": {
+        "cost": {
+            "total_cost": 0.012186212411708064,
+            "pending_cost": 4.452627296420629e-05,
+            "compute_cost": 0.009489720466810469,
+            "storage_cost": 0.00269684375
+        },
+        "runtime": 316.3264794791488,
+        "cost_reduction": 0.07663924618407136,
+        "speedup": 0.28094937128328074,
+        "cache": {
+            "usage": 76548707.06850816,
+            "insights": {
+                "cache_misses": 0,
+                "cache_hits": 321,
+                "get_requests": 321,
+                "put_requests": 530,
+                "evictions": 0
+            }
+        },
+        "latency": {
+            "mean": 0.9304913245564688,
+            "max": 45.00356152226955,
+            "min": 0.001019006264566821,
+            "q25": 0.006373470105427692,
+            "q75": 0.006373470105427692,
+            "q50": 0.05990945796733084,
+            "std": 4.233691381684797
+        },
+        "workload_insights": {
+            "size": 967,
+            "repetitiveness": 0.4881,
+            "query_type_frequencies": {
+                "select": 0.6846,
+                "insert": 0.3154,
+                "update": 0.0,
+                "delete": 0.0
+            },
+            "spikiness": 0.36497582408440765,
+            "std_dev": 0.22461629643348496
+        }
+    },
+    "hybrid": {
+        "cost": {
+            "total_cost": 0.012145268159211867,
+            "pending_cost": 0,
+            "compute_cost": 0.009560513019138796,
+            "storage_cost": 0.0025843437500000003
+        },
+        "runtime": 318.70858321426,
+        "cost_reduction": 0.07974163063069362,
+        "speedup": 0.2755345441995018,
+        "cache": {
+            "usage": 36756024.495315224,
+            "insights": {
+                "cache_misses": 0,
+                "cache_hits": 699,
+                "get_requests": 699,
+                "put_requests": 769,
+                "evictions": 0
+            }
+        },
+        "latency": {
+            "mean": 0.9898110321150616,
+            "max": 52.2428992798883,
+            "min": 0.001013378952409326,
+            "q25": 0.0017466568085999657,
+            "q75": 0.0017466568085999657,
+            "q50": 0.048951897918344325,
+            "std": 5.196121399418274
+        },
+        "workload_insights": {
+            "size": 1345,
+            "repetitiveness": 0.6312,
+            "query_type_frequencies": {
+                "select": 0.7732,
+                "insert": 0.2268,
+                "update": 0.0,
+                "delete": 0.0
+            },
+            "spikiness": 0.34376560753111157,
+            "std_dev": 0.24807689484379178
+        }
+    }
+}

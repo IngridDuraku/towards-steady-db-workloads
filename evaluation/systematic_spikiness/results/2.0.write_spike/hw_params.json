@@ -1,0 +1,17 @@
+{
+    "instance": {
+        "vCPUs": 2,
+        "network_speed": 25,
+        "price_per_hour": 0.108
+    },
+    "cache": {
+        "cost_per_gb": 0.081,
+        "put_cost": 0,
+        "get_cost": 0,
+        "request_latency_min": 1,
+        "request_latency_max": 2,
+        "type": "gp3",
+        "throughput_mb_per_s": 125,
+        "extra_cost": 0
+    }
+}

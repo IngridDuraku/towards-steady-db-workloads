@@ -1,0 +1,267 @@
+{
+    "size": 1000,
+    "query_config": {
+        "query_type_p": {
+            "select": 0.7,
+            "insert": 0.3,
+            "delete": 0,
+            "update": 0
+        },
+        "bytes_scanned": {
+            "lower_bound_mb": 600,
+            "upper_bound_gb": 250
+        },
+        "result_size": {
+            "lower_bound_mb": 0.0001,
+            "upper_bound_gb": 0.001
+        },
+        "write_volume": {
+            "lower_bound_mb": 0.1,
+            "upper_bound_gb": 0.001
+        },
+        "max_num_read_tables": 10,
+        "read_tables_distribution": {
+            "1": 0.8,
+            "2": 0.198,
+            "3": 0.001,
+            "4": 0.001
+        },
+        "db_access_dist": {
+            "0": 1.0
+        },
+        "ir_scale": 1.0,
+        "db_count": 1
+    },
+    "scheduler_config": {
+        "hourly_distribution_r": {
+            "1": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "2": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "3": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "4": {
+                "p": 5,
+                "tables_count": 1
+            },
+            "5": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "6": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "7": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "8": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "9": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "10": {
+                "p": 10,
+                "tables_count": 1
+            },
+            "11": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "12": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "13": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "14": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "15": {
+                "p": 1,
+                "tables_count": 10
+            },
+            "16": {
+                "p": 10,
+                "tables_count": 4
+            },
+            "17": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "18": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "19": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "20": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "21": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "22": {
+                "p": 10,
+                "tables_count": 4
+            },
+            "23": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "24": {
+                "p": 1,
+                "tables_count": 4
+            }
+        },
+        "hourly_distribution_w": {
+            "1": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "2": {
+                "p": 20,
+                "tables_count": 4
+            },
+            "3": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "4": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "5": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "6": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "7": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "8": {
+                "p": 20,
+                "tables_count": 1
+            },
+            "9": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "10": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "11": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "12": {
+                "p": 20,
+                "tables_count": 1
+            },
+            "13": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "14": {
+                "p": 1,
+                "tables_count": 1
+            },
+            "15": {
+                "p": 1,
+                "tables_count": 10
+            },
+            "16": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "17": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "18": {
+                "p": 20,
+                "tables_count": 4
+            },
+            "19": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "20": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "21": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "22": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "23": {
+                "p": 1,
+                "tables_count": 4
+            },
+            "24": {
+                "p": 1,
+                "tables_count": 4
+            }
+        },
+        "start_time": "2024-04-14 11:14:15",
+        "duration_h": 24,
+        "table_count": 10,
+        "tables_read_access_dist": {
+            "0": {
+                "0": 1,
+                "1": 1,
+                "2": 1,
+                "3": 1,
+                "4": 1,
+                "5": 0.1,
+                "6": 1,
+                "7": 0.1,
+                "8": 1,
+                "9": 1
+            }
+        },
+        "tables_write_access_dist": {
+            "0": {
+                "0": 1,
+                "1": 1,
+                "2": 1,
+                "3": 1,
+                "4": 1,
+                "5": 20,
+                "6": 1,
+                "7": 20,
+                "8": 1,
+                "9": 1
+            }
+        }
+    },
+    "repetitiveness": 0.5,
+    "seed": 6786877,
+    "name": "3.0.combined_spikes"
+}
