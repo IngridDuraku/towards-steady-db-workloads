@@ -12,29 +12,15 @@ class CacheTypeComparison:
     def __init__(self):
         self.wls = [
             "wl1",
-            # "wl2",
-            # "wl3"
-            # "wl4"
-            # "wl3",
-            # "wl4",
-            # "wl5",
-            # "wl6",
-            # "wl7",
-            # "wl8",
-            # "wl9"
+             "wl2",
+             "wl3"
+             "wl4"
         ]
         self.cache_size_map = {
             "wl1": 8,
-            # "wl2": 64,
-            # "wl3": 256,
-            # "wl4": 8
-            # "wl3": 16,
-            # "wl4": 16,
-            # "wl5": 16,
-            # "wl6": 16,
-            # "wl7": 16,
-            # "wl8": 16,
-            # "wl9": 16
+            "wl2": 64,
+            "wl3": 256,
+            "wl4": 8
         }
         self.name = "exp_5"
 
@@ -46,9 +32,9 @@ class CacheTypeComparison:
         path.mkdir(parents=True, exist_ok=True)
 
         for wl_name in self.wls:
-            wl = pd.read_csv(f"data_3/{wl_name}/wl.csv")
+            wl = pd.read_csv(f"data/{wl_name}/wl.csv")
             wl["hour"] = wl["hour"].astype(int)
-            wl_config = load_json(f"data_3/{wl_name}/config.json")
+            wl_config = load_json(f"data/{wl_name}/config.json")
             cache_size = self.cache_size_map[wl_name]
             load_ref = {
                 "bytes_scanned": (wl_config["query_config"]["bytes_scanned"]["lower_bound_mb"] * 1e6 +

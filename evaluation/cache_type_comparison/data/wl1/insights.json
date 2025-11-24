@@ -1,0 +1,12 @@
+{
+    "size": 11361,
+    "repetitiveness": 0.7366,
+    "query_type_frequencies": {
+        "select": 0.753,
+        "insert": 0.1203,
+        "update": 0.0268,
+        "delete": 0.0999
+    },
+    "spikiness": 0.41648754291397033,
+    "std_dev": 0.25388602176431024
+}
